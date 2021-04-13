@@ -4,7 +4,7 @@
 Setup tool allows to install the following components:
 - <b>Traefik</b> - for easy reverse proxying into container network.
 - <b>Portainer</b> - for easy browser-management of your docker containers, images, etc.
-- <b>Docker Registry</b> (Optional) - already configured Docker Registry.
+- <b>Docker Registry</b> (optional) - already configured Docker Registry.
 
 All SSL Certificates will be provided by Lets Encrypt, so USER_ENROLLMENT_EMAIL <b>must</b> be specified.
 
@@ -16,7 +16,7 @@ Parameters:
 - <b>USER_CREDENTIALS</b>          - credentials for user account for Traefik.
 - <b>ADMIN_PORTAINER_PASSWORD</b>  - password for Portainer.
 - <b>PORTAINER_FQDN</b>            - fully-qualified domain name of Portainer instance.
-- <b>REGISTRY_FQDN</b> (Optional)  - fully-qualified domain name of Docker Registry instance.
+- <b>REGISTRY_FQDN</b> (optional)  - fully-qualified domain name of Docker Registry instance.
 - <b>TRAEFIK_FQDN</b>              - fully-qualified domain name of Traefik instance.
 - <b>USER_ENROLLMENT_EMAIL</b>     - email for LetsEncrypt Certificate enrollment.
 
