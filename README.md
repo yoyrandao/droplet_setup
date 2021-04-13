@@ -1,4 +1,4 @@
-# Basic setup tool for VDS or DigitalOcean droplets
+# Basic setup tool for VDS with Docker or DigitalOcean Docker Droplets
 
 ## Description
 Setup tool allows to install the following components:
