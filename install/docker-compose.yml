@@ -1,0 +1,104 @@
+version: '3'
+services:
+
+  traefik:
+    image: traefik:v2.4
+    container_name: traefik
+    command:
+      - --api.insecure=true
+      
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure
+      - --entrypoints.websecure.address=:443
+
+      - --certificatesresolvers.myresolver.acme.httpchallenge=true
+      - --certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web
+      - --certificatesresolvers.myresolver.acme.email=${USER_ENROLLMENT_EMAIL}
+      - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
+    ports:
+      - 80:80
+      - 443:443
+      - 8080:8080
+    networks:
+      - registry_default
+      - portainer_default
+    volumes:
+      - letsencrypt:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - traefik.enable=true
+
+      - traefik.http.middlewares.traefik-compress.compress=true
+      - traefik.http.middlewares.auth.basicauth.users=${USER_CREDENTIALS}
+
+      - traefik.http.routers.traefik.rule=Host(`${TRAEFIK_FQDN}`)
+      - traefik.http.routers.traefik.entrypoints=websecure
+      - traefik.http.routers.traefik.tls.certresolver=myresolver
+      - traefik.http.routers.traefik.service=api@internal
+      - traefik.http.routers.traefik.middlewares=traefik-compress,auth
+
+  portainer:
+    restart: always
+    container_name: portainer
+    image: portainer/portainer-ce
+    ports:
+      - 8000:8000
+      - 9000:9000
+    command: 
+      - --admin-password=${ADMIN_PORTAINER_PASSWORD}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks: 
+      - portainer_default
+    labels: 
+      - traefik.enable=true
+
+      - traefik.http.services.portainer-portainer.loadbalancer.server.port=9000
+
+      - traefik.http.routers.portainer.rule=Host(`${PORTAINER_FQDN}`)
+      - traefik.http.routers.portainer.entrypoints=websecure
+      - traefik.http.routers.portainer.tls.certresolver=myresolver
+      - traefik.http.routers.portainer.service=portainer-portainer
+  
+  registry:
+    restart: always
+    image: registry:2
+    container_name: registry
+    ports:
+      - 5000:5000
+    volumes:
+      - registry_data:/var/lib/registry
+    networks: 
+      - registry_default
+    labels:
+      - traefik.enable=true
+
+      - traefik.http.routers.registry.rule=Host(`${REGISTRY_FQDN}`)
+      - traefik.http.routers.registry.entrypoints=websecure
+      - traefik.http.routers.registry.tls.certresolver=myresolver
+      - traefik.http.routers.registry.service=registry
+      - traefik.http.routers.registry.middlewares=auth-registry,traefik-compress
+      - traefik.http.routers.guest-registry.rule=Host(`${REGISTRY_FQDN}`) && Method(`GET`, `HEAD`)
+      - traefik.http.routers.guest-registry.service=guest-registry
+      - traefik.http.routers.guest-registry.middlewares=aguest-registry,traefik-compress
+
+      - traefik.http.services.registry.loadbalancer.server.port=5000
+      - traefik.http.services.guest-registry.loadbalancer.server.port=5000
+      
+      - traefik.http.middlewares.auth-registry.basicauth.users=${ADMIN_CREDENTIALS}
+      - traefik.http.middlewares.aguest-registry.basicauth.users=${USER_CREDENTIALS}    
+
+volumes:
+  letsencrypt:
+  portainer_data:
+  registry_data:
+
+networks:
+  registry_default:
+    external: true
+  portainer_default:
+    external: true
