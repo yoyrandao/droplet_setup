@@ -21,5 +21,13 @@ echo 'executing docker-compose. initializing...';
 docker network create registry_default;
 docker network create portainer_default;
 
+if [ $1 = '-withRegistry' ]
+then
+  docker-compose -f install/docker-compose.yml --env-file install/.env --profile withRegistry up -d;
+  echo 'droplet initialized.';
+  exit 0;
+fi
+
 docker-compose -f install/docker-compose.yml --env-file install/.env up -d;
 echo 'droplet initialized.';
+exit 0;
