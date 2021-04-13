@@ -68,7 +68,6 @@ services:
     restart: always
     image: registry:2
     container_name: registry
-    profiles: [ "withRegistry" ]
     ports:
       - 5000:5000
     volumes:
